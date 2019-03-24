@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf8"/>
+        <script type="text/javascript">
+            function squareIt(text) {
+                var num = parseInt(text);
+                return num * num;
+            }
+
+            function helloWorld() {
+                var input1 = document.getElementById('input1');
+                var output1 = document.getElementById('output1');
+                output1.innerText = squareIt(input1.value);
+            }
+        </script>
+    </head>
+    <body>
+        <form name="noddyForm" action="javascript:helloWorld()">
+        <table>
+            <tr><th>Input</th><th>Output</th></tr>
+            <tr><td><input name="aaa" type="text" id="input1"/><td id="output1">Wootage</td></tr>
+    
+            <tr><td><input name="Submit" type="submit" value="woot"/></td></tr>
+        </table>
+        </form>
+    </body>
+    
+</html>
