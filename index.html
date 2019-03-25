@@ -1,29 +1,83 @@
 <!DOCTYPE html>
 <html>
-    <head>
+<head>
         <meta charset="utf8"/>
-        <script type="text/javascript">
-            function squareIt(text) {
-                var num = parseInt(text);
-                return num * num;
-            }
+<script>
+ async function createWebAssembly(path, importObject) {
+    const result = await window.fetch(path);
+    const bytes = await result.arrayBuffer();
+    return WebAssembly.instantiate(bytes, importObject);
+  }
+  const memory = new WebAssembly.Memory({initial: 256, maximum: 256});
+  let exports = null;
+  let animation_id = null;
 
-            function helloWorld() {
-                var input1 = document.getElementById('input1');
-                var output1 = document.getElementById('output1');
-                output1.innerText = squareIt(input1.value);
-            }
-        </script>
-    </head>
-    <body>
-        <form name="noddyForm" action="javascript:helloWorld()">
-        <table>
-            <tr><th>Input</th><th>Output</th></tr>
-            <tr><td><input name="aaa" type="text" id="input1"/><td id="output1">Wootage</td></tr>
-    
-            <tr><td><input name="Submit" type="submit" value="woot"/></td></tr>
-        </table>
-        </form>
-    </body>
-    
+  async function init() {
+    const env = {
+      'abortStackOverflow': _ => { throw new Error('overflow'); },
+      'table': new WebAssembly.Table({initial: 0, maximum: 0, element: 'anyfunc'}),
+      '__table_base': 0,
+      'memory': memory,
+      '__memory_base': 1024,
+      'STACKTOP': 0,
+      'STACK_MAX': memory.buffer.byteLength,
+    };
+    const importObject = {env};
+
+    const wa = await createWebAssembly('lyff/output.wasm', importObject);
+    exports = wa.instance.exports;
+    console.info('got exports', exports);
+    exports._board_init();
+    draw();
+    canvas.onclick = (env) => {
+        if (animation_id) {
+            clearInterval(animation_id);
+            animation_id = null;
+        } else {
+            animation_id = setInterval(doStep, 34);
+        }
+    }
+  }
+
+  function doStep() {
+    exports._board_step();
+    draw();
+  }
+
+  function getBoardBuffer() {
+      return new Uint8Array(memory.buffer, exports._board_ref())
+  }
+  
+  function draw() {
+      const buffer = getBoardBuffer();
+      const dim = 100;
+      canvas.width = canvas.height = dim + 2;
+      canvas.style.width = canvas.style.height = `${dim*5}px`;
+      const data = new ImageData(canvas.width, canvas.height);
+
+    for (let x = 1; x <= dim; ++x) { // Google use preincrement, because they are awesome ;-)
+        for (let y = 1; y <= dim; ++y) {
+            const pos = (y * (dim + 2)) + x;
+            const i = (pos / 8) << 0;
+            const off = 1 << (pos % 8);
+            const alive = (buffer[i] & off)
+            if (!alive) { continue; }
+
+            const doff = (y * canvas.width + x) * 4;
+            data.data[doff+0] = 255;
+            data.data[doff+3] = 255;
+        }
+    }
+    canvas.getContext('2d').putImageData(data, 0, 0);
+  }
+  init();
+
+
+</script>
+</head>
+<body>
+
+<canvas id="canvas" style="image-rendering: pixelated; border: 2px solid blue;"></canvas>
+
+</body>
 </html>
