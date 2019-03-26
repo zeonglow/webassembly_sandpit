@@ -114,21 +114,11 @@ byte *board_ref() {
 
 // Clears the board.
 void board_init() {
+ // srand(42);
   clear_board_ref(board);
 
-  // TODO: dummy board setup
-  board[85] = 255;
-  board[120] = 255;
-  board[132] = 255;
-  board[800] = 255;
-  board[720] = 254;
-  board[700] = 255;
-  board[600] = 255;
-  board[601] = 255;
-  board[602] = 255;
-  board[603] = 255;
-  board[604] = 255;
-  board[605] = 255;
-  board[606] = 255;
+  for (int i=70; i < 800; ++i) {
+    board[(i*2) % SIZE] = 255;
+  }
 }
 

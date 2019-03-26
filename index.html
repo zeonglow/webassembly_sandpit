@@ -31,10 +31,10 @@
     draw();
     canvas.onclick = (env) => {
         if (animation_id) {
-            clearInterval(animation_id);
+            window.cancelAnimationFrame(animation_id);
             animation_id = null;
         } else {
-            animation_id = setInterval(doStep, 34);
+            animation_id = window.requestAnimationFrame(doStep);
         }
     }
   }
@@ -42,6 +42,9 @@
   function doStep() {
     exports._board_step();
     draw();
+    if (animation_id) {
+        window.requestAnimationFrame(doStep);
+    }
   }
 
   function getBoardBuffer() {
